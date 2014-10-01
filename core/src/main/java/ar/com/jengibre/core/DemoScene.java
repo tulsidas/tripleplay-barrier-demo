@@ -20,10 +20,14 @@ import tripleplay.game.ScreenStack;
 import tripleplay.game.UIAnimScreen;
 import tripleplay.util.Colors;
 
-public abstract class BaseScreen extends UIAnimScreen {
+public class DemoScene extends UIAnimScreen {
+
    protected final ScreenStack _stack;
 
-   public BaseScreen(ScreenStack _stack) {
+   // separate animator for the photos
+   private Animator fanim = new Animator();
+
+   public DemoScene(ScreenStack _stack) {
       this._stack = _stack;
 
       pointer().setListener(new Pointer.Adapter() {
@@ -34,55 +38,41 @@ public abstract class BaseScreen extends UIAnimScreen {
       });
    }
 
-   private Animator fanim = new Animator();
+   @Override
+   public void wasShown() {
+      super.wasShown();
 
-   protected abstract void onClick();
+      CanvasImage ci = graphics().createImage(width(), height());
+      Canvas c = ci.canvas();
 
-   protected void foto() {
-      pointer().setEnabled(false);
+      c.setFillColor(Colors.RED);
+      c.fillRect(0, 0, width(), height());
+      layer.add(graphics().createImageLayer(ci));
 
-      ImageLayer foto = graphics().createImageLayer(polaroid());
-      layer.add(foto);
+      CanvasImage sqimg = graphics().createImage(50, 50);
+      sqimg.canvas().setFillColor(0xFF99CCFF).fillRect(0, 0, 50, 50);
+      ImageLayer square = graphics().createImageLayer(sqimg);
+      layer.addAt(square, 50, 200);
 
-      float DUR = 600;
-      // 600x454 -> 150x113
+      anim.repeat(square).tweenX(square).to(width() - 100).in(1000).then().tweenX(square).to(50).in(1000);
 
-      fanim.tweenScale(foto).to(0.25F).in(DUR).easeInOut();
-      fanim.tweenXY(foto).to(-10, 370).in(DUR).easeInOut();
-      fanim.tweenRotation(foto).to(-FloatMath.PI / 8).in(DUR);
-
-      fanim.addBarrier(3333); // espero a que todo termine + 333
-
-      fanim.tweenXY(foto).to(-300, 270).in(DUR).easeOutBack();
-      fanim.tweenRotation(foto).to(-3 * FloatMath.PI).in(DUR);
-
-      fanim.addBarrier();
-
-      fanim.action(new Runnable() {
-         public void run() {
-            pointer().setEnabled(true);
-         }
-      });
    }
 
    private CanvasImage polaroid() {
       CanvasImage screenshot = graphics().createImage(width(), height());
       capture(layer, screenshot.canvas());
 
-      final int BORDE = 2;
+      final int BORDER = 2;
 
-      // marco polaroid
-      CanvasImage polaroid = graphics().createImage(width() + 20 + BORDE + BORDE,
-            height() + 60 + BORDE + BORDE);
+      CanvasImage polaroid = graphics().createImage(width() + 20 + BORDER + BORDER,
+            height() + 60 + BORDER + BORDER);
       polaroid.canvas().clear();
 
-      // fondo negro
       polaroid.canvas().setFillColor(Colors.BLACK);
       polaroid.canvas().fillRect(0, 0, polaroid.width(), polaroid.height());
 
-      // fondo blanco
       polaroid.canvas().setFillColor(Colors.WHITE);
-      polaroid.canvas().fillRect(BORDE, BORDE, polaroid.width() - BORDE, polaroid.height() - BORDE);
+      polaroid.canvas().fillRect(BORDER, BORDER, polaroid.width() - BORDER, polaroid.height() - BORDER);
 
       polaroid.canvas().drawImage(screenshot, 10, 10);
 
@@ -141,4 +131,34 @@ public abstract class BaseScreen extends UIAnimScreen {
       fanim.paint(clock);
    }
 
+   protected void foto() {
+      pointer().setEnabled(false);
+
+      ImageLayer foto = graphics().createImageLayer(polaroid());
+      layer.add(foto);
+
+      float DUR = 600;
+      // 600x454 -> 150x113
+
+      fanim.tweenScale(foto).to(0.25F).in(DUR).easeInOut();
+      fanim.tweenXY(foto).to(-10, 370).in(DUR).easeInOut();
+      fanim.tweenRotation(foto).to(-FloatMath.PI / 8).in(DUR);
+
+      fanim.addBarrier(3333);
+
+      fanim.tweenXY(foto).to(-300, 270).in(DUR).easeOutBack();
+      fanim.tweenRotation(foto).to(-3 * FloatMath.PI).in(DUR);
+
+      fanim.addBarrier();
+
+      fanim.action(new Runnable() {
+         public void run() {
+            pointer().setEnabled(true);
+         }
+      });
+   }
+
+   protected void onClick() {
+      foto();
+   }
 }

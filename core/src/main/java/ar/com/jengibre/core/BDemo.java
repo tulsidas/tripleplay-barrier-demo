@@ -24,7 +24,7 @@ public class BDemo extends Game.Default {
 
    @Override
    public void init() {
-      _stack.push(new Escena1(_stack));
+      _stack.push(new DemoScene(_stack));
    }
 
    @Override
